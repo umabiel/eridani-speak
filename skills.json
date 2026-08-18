@@ -1,9 +1,10 @@
 {
   "name": "eridani-speak",
   "version": "1.0.0",
-  "description": "Two LLM communication styles inspired by Rocky from Project Hail Mary. Zero filler.",
+  "description": "Three LLM communication styles inspired by Rocky from Project Hail Mary: zero-filler Signal, the full Rocky voice, and Signal Coding for coding agents. Plus an evaluation harness.",
   "skills": [
     "./signal",
-    "./rocky"
+    "./rocky",
+    "./signal-coding"
   ]
 }

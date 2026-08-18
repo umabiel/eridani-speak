@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EvalFixture",
+  "description": "One line of an evals/fixtures/*.jsonl file. Deterministic presence checks score responses; no LLM judge required.",
+  "type": "object",
+  "required": [
+    "id",
+    "category",
+    "prompt",
+    "expected_facts",
+    "forbidden_loss"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique fixture id, e.g. debugging-001"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "explanation",
+        "debugging",
+        "code-review",
+        "architecture",
+        "planning",
+        "agentic"
+      ]
+    },
+    "prompt": {
+      "type": "string",
+      "description": "The task given to the model"
+    },
+    "expected_facts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Facts that MUST survive compression (scored by presence in the response)"
+    },
+    "forbidden_loss": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Constraints/nuances that must not be lost: uncertainty, trade-offs, conditions"
+    },
+    "reference_answer": {
+      "type": "string",
+      "description": "Optional dense signal-coding style answer, for spot-checking and as documentation"
+    },
+    "required_terms": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Optional exact terms the response must contain"
+    },
+    "required_conditions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Optional conditions the response must state"
+    },
+    "task_success_criteria": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Optional success criteria; if present, task_success is graded from these"
+    }
+  }
+}
