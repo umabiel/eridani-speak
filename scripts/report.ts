@@ -95,6 +95,13 @@ export function renderReport(input: ReportInput): string {
       const d = delta(nv, sv);
       lines.push(`| ${label} | ${fmt(nv)} | ${fmt(sv)} | ${d === null ? 'n/a' : formatDelta(d)} |`);
     }
+    const failedNormal = normal.cases.filter((c) => c.error).length;
+    const failedSignal = signal.cases.filter((c) => c.error).length;
+    if (failedNormal + failedSignal > 0) {
+      lines.push(
+        `\n**Failed cases:** normal ${failedNormal}, signal-coding ${failedSignal} (see run JSON for per-case errors).`,
+      );
+    }
     lines.push('');
 
     const normalCtxGrowth = contextGrowthRate(normal.conversation_sim);

@@ -20,6 +20,8 @@ export interface CaseResult {
   task_success: boolean | null;
   /** Optional LLM judge rubric scores (0-5 per dimension), when judging was run. */
   judge?: JudgeScores | null;
+  /** Set when the provider call failed; tokens/quality are zeroed. */
+  error?: string;
 }
 
 export interface Aggregate {

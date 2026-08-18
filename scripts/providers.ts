@@ -31,11 +31,30 @@ export interface OpenAICompatConfig {
   model: string;
   /** Injectable fetch for tests. */
   fetchImpl?: typeof fetch;
+  /** Per-request timeout in ms. Default 120000. */
+  timeoutMs?: number;
+  /** Retries on 429/5xx/network errors. Default 2. */
+  maxRetries?: number;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isRetryableStatus(status: number): boolean {
+  return status === 429 || (status >= 500 && status < 600);
+}
+
+function isNetworkError(error: unknown): boolean {
+  return error instanceof TypeError || (error instanceof Error && /fetch failed/i.test(error.message));
 }
 
 /**
  * OpenAI-compatible chat completions client. Works against OpenAI, OpenRouter,
  * and local servers (llama.cpp, LM Studio, Ollama /v1, vLLM).
+ * Each attempt has a hard timeout; 429/5xx and network failures are retried
+ * with exponential backoff. Timeouts are NOT retried — a model that exceeds
+ * the timeout is slow, not transient.
  */
 export class OpenAICompatProvider implements LLMProvider {
   readonly name = 'openai-compatible';
@@ -43,39 +62,70 @@ export class OpenAICompatProvider implements LLMProvider {
   constructor(private readonly config: OpenAICompatConfig) {}
 
   async complete(request: CompletionRequest): Promise<CompletionResult> {
-    const started = Date.now();
-    const messages = [
-      ...(request.system ? [{ role: 'system' as const, content: request.system }] : []),
-      { role: 'user' as const, content: request.prompt },
-    ];
-    const body = {
-      model: request.model,
-      messages,
-      temperature: request.temperature ?? 0,
-    };
+    const timeoutMs = this.config.timeoutMs ?? 120_000;
+    const maxRetries = this.config.maxRetries ?? 2;
     const fetchImpl = this.config.fetchImpl ?? fetch;
-    const response = await fetchImpl(`${stripTrailingSlash(this.config.baseUrl)}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.config.apiKey}`,
-      },
-      body: JSON.stringify(body),
-    });
-    if (!response.ok) {
-      const detail = await response.text().catch(() => '');
-      throw new Error(`Provider HTTP ${response.status}: ${detail.slice(0, 500)}`);
-    }
-    const data = (await response.json()) as Record<string, unknown>;
-    const choices = data.choices as Array<{ message?: { content?: unknown } }> | undefined;
-    const content = choices?.[0]?.message?.content;
-    const text = typeof content === 'string' ? content : '';
-    return {
-      text,
-      usage: normalizeUsage(data.usage),
-      latency_ms: Date.now() - started,
-      model: typeof data.model === 'string' ? data.model : request.model,
+    const url = `${stripTrailingSlash(this.config.baseUrl)}/chat/completions`;
+    const headers = {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${this.config.apiKey}`,
     };
+    const body = JSON.stringify({
+      model: request.model,
+      messages: [
+        ...(request.system ? [{ role: 'system' as const, content: request.system }] : []),
+        { role: 'user' as const, content: request.prompt },
+      ],
+      temperature: request.temperature ?? 0,
+    });
+
+    let lastError: unknown;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      if (attempt > 0) {
+        const delay = 1_000 * 2 ** (attempt - 1);
+        await sleep(delay);
+      }
+      const started = Date.now();
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+        let response: Response;
+        try {
+          response = await fetchImpl(url, { method: 'POST', headers, body, signal: controller.signal });
+        } finally {
+          clearTimeout(timer);
+        }
+        if (!response.ok) {
+          const detail = await response.text().catch(() => '');
+          const error = new Error(`Provider HTTP ${response.status}: ${detail.slice(0, 500)}`);
+          if (isRetryableStatus(response.status)) {
+            lastError = error;
+            continue;
+          }
+          throw error;
+        }
+        const data = (await response.json()) as Record<string, unknown>;
+        const choices = data.choices as Array<{ message?: { content?: unknown } }> | undefined;
+        const content = choices?.[0]?.message?.content;
+        const text = typeof content === 'string' ? content : '';
+        return {
+          text,
+          usage: normalizeUsage(data.usage),
+          latency_ms: Date.now() - started,
+          model: typeof data.model === 'string' ? data.model : request.model,
+        };
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw new Error(`Provider request timed out after ${timeoutMs}ms`);
+        }
+        if (isNetworkError(error) && attempt < maxRetries) {
+          lastError = error;
+          continue;
+        }
+        throw error;
+      }
+    }
+    throw lastError instanceof Error ? lastError : new Error('Provider request failed after retries');
   }
 }
 
@@ -104,15 +154,22 @@ export interface MockConfig {
   tokenizer: { count(text: string): number };
   /** Deterministic reply for tests/demos; default echoes the prompt. */
   replyFor?: (prompt: string) => string;
+  /** Simulated failures for tests: throw this many times before succeeding. */
+  failTimes?: number;
 }
 
 /** Offline deterministic provider for tests, demos, and CI. */
 export class MockProvider implements LLMProvider {
   readonly name = 'mock';
+  private failures = 0;
 
   constructor(private readonly config: MockConfig) {}
 
   async complete(request: CompletionRequest): Promise<CompletionResult> {
+    if (this.config.failTimes && this.failures < this.config.failTimes) {
+      this.failures += 1;
+      throw new Error('Mock transient failure');
+    }
     const text = this.config.replyFor
       ? this.config.replyFor(request.prompt)
       : `Mock response to: ${request.prompt.slice(0, 80)}`;

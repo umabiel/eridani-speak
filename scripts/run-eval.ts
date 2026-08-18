@@ -118,6 +118,8 @@ async function main(): Promise<void> {
         baseUrl: process.env.LLM_BASE_URL ?? 'https://api.openai.com/v1',
         apiKey: process.env.LLM_API_KEY ?? '',
         model,
+        timeoutMs: Number(process.env.LLM_TIMEOUT_MS ?? 120000),
+        maxRetries: Number(process.env.LLM_MAX_RETRIES ?? 2),
       });
 
   if (!opts.mock && !process.env.LLM_API_KEY) {
@@ -143,22 +145,44 @@ async function main(): Promise<void> {
     console.log(`\nRunning mode: ${mode} (${selected.length} cases, model=${model})`);
     const cases: CaseResult[] = [];
     for (const fixture of selected) {
-      const result = await provider.complete({
-        model,
-        system: mode === 'signal-coding' ? systemPrompt : undefined,
-        prompt: fixture.prompt,
-        temperature: opts.temperature ?? 0,
-      });
-      const caseResult = buildCaseResult(
-        fixture,
-        mode,
-        result,
-        mode === 'signal-coding' ? systemPrompt : undefined,
-        counter,
-      );
+      let caseResult: CaseResult;
+      try {
+        const result = await provider.complete({
+          model,
+          system: mode === 'signal-coding' ? systemPrompt : undefined,
+          prompt: fixture.prompt,
+          temperature: opts.temperature ?? 0,
+        });
+        caseResult = buildCaseResult(
+          fixture,
+          mode,
+          result,
+          mode === 'signal-coding' ? systemPrompt : undefined,
+          counter,
+        );
+      } catch (error) {
+        // Per-case failure: record it, keep the run alive, zero the case.
+        caseResult = {
+          fixtureId: fixture.id,
+          category: fixture.category,
+          mode,
+          output: '',
+          input_tokens: 0,
+          prompt_input_tokens: 0,
+          output_tokens: 0,
+          total_tokens: 0,
+          latency_ms: 0,
+          critical_fact_recall: 0,
+          constraint_recall: 0,
+          quality_score: 0,
+          task_success: null,
+          error: error instanceof Error ? error.message : String(error),
+        };
+        console.error(`  [${mode}] ${fixture.id}: FAILED — ${caseResult.error}`);
+      }
       cases.push(caseResult);
       console.log(
-        `  [${mode}] ${caseResult.fixtureId}: out=${caseResult.output_tokens} tok, quality=${caseResult.quality_score.toFixed(2)}`,
+        `  [${mode}] ${caseResult.fixtureId}: out=${caseResult.output_tokens} tok, quality=${caseResult.quality_score.toFixed(2)}${caseResult.error ? ' [FAILED]' : ''}`,
       );
     }
     const agg: Aggregate = aggregate(cases);
