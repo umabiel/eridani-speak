@@ -203,7 +203,7 @@ Deliberately not included in v0.1: LLM judge, multi-provider matrix, real repo-e
 ## Work in progress
 
 - Rocky's voice is hard to pin down — close enough that readers recognise it, but not finished.
-- Measured results exist (see docs/benchmarks): first run (v0.1) showed -75.2% output tokens at a judge-measured quality cost of -13.8%; the v1.1 tune recovered about a third of that gap at +5.7% tokens. Percentage claims below always reference these files.
+- Measured results exist (see docs/benchmarks). Headline: with deepseek-v4-flash, signal-coding delivers ~73% output-token savings with judge-measured quality equal-or-better than normal mode (floor ratio 1.04); with gpt-4o-mini the same skill costs ~13% quality. Model strength determines whether density is free.
 - The agentic fixtures grade the agent's *report text*, not real repository edits. Repo-execution agentic benchmarks are next.
 - Conversation projections are simulations from measured per-turn averages, not full multi-turn runs.
 
