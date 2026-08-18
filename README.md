@@ -203,7 +203,12 @@ Deliberately not included in v0.1: LLM judge, multi-provider matrix, real repo-e
 ## Work in progress
 
 - Rocky's voice is hard to pin down — close enough that readers recognise it, but not finished.
-- Measured results exist (see docs/benchmarks). Headline: with deepseek-v4-flash, signal-coding delivers ~73% output-token savings with judge-measured quality equal-or-better than normal mode (floor ratio 1.04); with gpt-4o-mini the same skill costs ~13% quality. Model strength determines whether density is free.
+- Measured results exist (see docs/benchmarks). Three-model matrix (judged with a constant gpt-4o-mini judge, ~73% output-token savings in all cases):
+  - gpt-4o-mini: floor ratio 0.873 — density costs ~13% quality
+  - gpt-4o: floor ratio 0.905 — density costs ~10% quality
+  - deepseek-v4-flash: floor ratio 1.036 — density is free (signal >= normal)
+  Conclusion: whether density is free depends on model strength, not family.
+  - Agentic benchmark v0.2 (real bug-fix tasks, gpt-4o-mini): normal 5/6 vs signal 4/6 — small sample, signal slightly worse on real task completion.
 - The agentic fixtures grade the agent's *report text*, not real repository edits. Repo-execution agentic benchmarks are next.
 - Conversation projections are simulations from measured per-turn averages, not full multi-turn runs.
 

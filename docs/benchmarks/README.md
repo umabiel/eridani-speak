@@ -12,3 +12,5 @@ and (when present) LLM judge rubric scores. Raw JSON lives in results/
 | 2026-08-18-openai-gpt-4o-mini.md | v0.1 skill — 55 fixtures x 2 modes, OpenRouter, gpt-4o-mini, tiktoken, judged |
 | 2026-08-18-openai-gpt-4o-mini-v1.1.md | v1.1 skill (nuance rules) — same config, judged |
 | 2026-08-18-deepseek-v4-flash.md | v1.1 skill, deepseek/deepseek-v4-flash — judged with gpt-4o-mini (constant judge) |
+| 2026-08-18-openai-gpt-4o.md | v1.1 skill, openai/gpt-4o — judged with gpt-4o-mini (constant judge) |
+| 2026-08-18-agentic-gpt-4o-mini.md | Agentic benchmark v0.2 — 6 real bug-fix tasks (mini-repos + node:test), gpt-4o-mini, normal vs signal |

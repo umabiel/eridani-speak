@@ -16,6 +16,7 @@
     "eval": "tsx scripts/run-eval.ts",
     "compare": "tsx scripts/compare.ts",
     "judge": "tsx scripts/judge.ts",
+    "agentic": "tsx scripts/agentic-run.ts",
     "report": "tsx scripts/report.ts"
   },
   "devDependencies": {

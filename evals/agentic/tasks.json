@@ -1,0 +1,32 @@
+[
+  {
+    "id": "counter-race",
+    "dir": "repos/counter-race",
+    "title": "Lost updates under concurrency"
+  },
+  {
+    "id": "auth-bypass",
+    "dir": "repos/auth-bypass",
+    "title": "Substring match grants admin"
+  },
+  {
+    "id": "dedupe",
+    "dir": "repos/dedupe",
+    "title": "Duplicate submissions double-charge"
+  },
+  {
+    "id": "validation",
+    "dir": "repos/validation",
+    "title": "No input validation on transfers"
+  },
+  {
+    "id": "cache-stale",
+    "dir": "repos/cache-stale",
+    "title": "Stale cache survives deploys"
+  },
+  {
+    "id": "query-limit",
+    "dir": "repos/query-limit",
+    "title": "N+1 style per-row lookups"
+  }
+]
