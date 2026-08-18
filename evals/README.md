@@ -81,7 +81,11 @@ npm run report            # renders latest results/ pair
   as a cached prompt afterwards, matching OpenRouter/OpenAI prompt caching.
   The per-case table and the conversation table therefore tell different
   stories on purpose: request cost vs long-session growth.
-- Quality scoring is deterministic substring presence — a strong floor, not a
-  full semantic judge. An LLM judge is planned but deliberately not required.
+- Quality scoring is deterministic: strict normalized substring OR fuzzy
+  in-order token containment (connectives stripped, negations skippable).
+  Task-success criteria are strict. This is a recall floor — absolute scores
+  under-state well-paraphrased answers; the intended use is relative
+  normal-vs-signal comparison on the same fixtures. An LLM judge is planned
+  (P2) but deliberately not required.
 - The agentic fixtures grade the *report* text, not real repository edits.
   Real repo-execution agentic benchmarks are future work.

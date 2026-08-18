@@ -48,11 +48,72 @@ export function normalize(text: string): string {
     .trim();
 }
 
-/** Deterministic substring presence check after normalization. */
-export function contains(response: string, required: string): boolean {
+/** Connectives/articles stripped for the fuzzy fallback — semantically light in technical prose. */
+const STOPWORDS = new Set([
+  'a', 'an', 'the', 'and', 'or', 'but', 'of', 'to', 'for', 'in', 'on', 'with',
+  'by', 'at', 'from', 'as', 'be', 'is', 'are', 'was', 'were', 'been', 'it',
+  'its', 'this', 'that', 'these', 'those', 'then', 'than', 'so', 'via', 'into',
+]);
+
+/**
+ * Negations are kept as soft tokens: they match normally when present, but the
+ * fuzzy matcher may skip up to FUZZY_MAX_SKIPS of them when a paraphrase
+ * rephrases the negation (e.g. "but not X" -> "ignoring X").
+ */
+const SOFT_TOKENS = new Set(['not', 'no', 'never', 'without', 'only']);
+const FUZZY_MAX_SKIPS = 2;
+
+function contentTokens(text: string): string[] {
+  return normalize(text)
+    .split(' ')
+    .filter((t) => t.length > 0 && !STOPWORDS.has(t));
+}
+
+/**
+ * Fuzzy subsequence: needle tokens must appear in haystack in order (gaps
+ * allowed), with a small budget to skip missing soft (negation) tokens.
+ */
+function isFuzzySubsequence(needle: string[], haystack: string[]): boolean {
+  let i = 0;
+  let skips = 0;
+  for (const token of haystack) {
+    if (i >= needle.length) break;
+    if (needle[i] === token) {
+      i += 1;
+      continue;
+    }
+    while (i < needle.length && needle[i] !== token && SOFT_TOKENS.has(needle[i]) && skips < FUZZY_MAX_SKIPS) {
+      i += 1;
+      skips += 1;
+    }
+  }
+  while (i < needle.length && SOFT_TOKENS.has(needle[i]) && skips < FUZZY_MAX_SKIPS) {
+    i += 1;
+    skips += 1;
+  }
+  return i >= needle.length;
+}
+
+export interface ContainsOptions {
+  /** Disable the fuzzy fallback (strict substring only). Defaults to true. */
+  fuzzy?: boolean;
+}
+
+/**
+ * Presence check: strict normalized substring, else fuzzy in-order token
+ * containment (connectives stripped, negations skippable, gaps allowed).
+ * This is a recall floor — it credits paraphrases ("only validates the JWT
+ * signature and expiry, ignoring revocation" vs "validates ... but not
+ * session.revokedAt") while still requiring the substantive terms in order.
+ */
+export function contains(response: string, required: string, options: ContainsOptions = {}): boolean {
   const needle = normalize(required);
   if (!needle) return true;
-  return normalize(response).includes(needle);
+  if (normalize(response).includes(needle)) return true;
+  if (options.fuzzy === false) return false;
+  const needleTokens = contentTokens(required);
+  if (needleTokens.length === 0) return true;
+  return isFuzzySubsequence(needleTokens, contentTokens(response));
 }
 
 export function recall(response: string, items: string[]): number {
@@ -80,7 +141,9 @@ export function scoreQuality(response: string, fixture: EvalFixture): QualitySco
   const quality_score =
     critical_fact_recall * 0.5 + constraint_recall * 0.3 + termRecall * 0.1 + conditionRecall * 0.1;
   const criteria = fixture.task_success_criteria ?? [];
-  const task_success = criteria.length ? criteria.every((c) => contains(response, c)) : null;
+  // Task success criteria are exact requirements: strict matching only, so
+  // negation-sensitive criteria like "no retry on 4xx" cannot false-positive.
+  const task_success = criteria.length ? criteria.every((c) => contains(response, c, { fuzzy: false })) : null;
   return { quality_score, critical_fact_recall, constraint_recall, task_success };
 }
 

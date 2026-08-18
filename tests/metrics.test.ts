@@ -19,6 +19,21 @@ test('contains is case-insensitive and whitespace tolerant', () => {
   assert.ok(!contains('nothing here', 'redis'));
 });
 
+test('contains credits paraphrases via fuzzy token matching', () => {
+  // model rephrased "validates the JWT signature but not session.revokedAt"
+  assert.ok(
+    contains(
+      'refreshToken() only validates the JWT signature and expiry, ignoring revocation state; check session.revokedAt before issuing',
+      'validates the JWT signature but not session.revokedAt',
+    ),
+  );
+  // connectives stripped from both sides: "the"/"and"/"a" do not block
+  assert.ok(contains('Redis is fast but adds infrastructure', 'redis adds infrastructure'));
+  // substantive terms must still be present, in order
+  assert.ok(!contains('the database has no indexes', 'index maps keys to row locations'));
+  assert.ok(!contains('we use Redis', 'keep Postgres'));
+});
+
 test('recall is the fraction of present facts', () => {
   assert.equal(recall('a b c', ['a', 'b', 'zzz']), 2 / 3);
   assert.equal(recall('anything', []), 1);
