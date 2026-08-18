@@ -188,7 +188,7 @@ Signal Coding's promise — *same quality, fewer tokens* — is a testable claim
 
 It runs every fixture in normal mode and in signal-coding mode, records input/output/total tokens (provider-reported when available, otherwise approximate or tiktoken-compatible counting), scores quality with deterministic presence checks (facts, constraints, terms, conditions), projects conversation growth over simulated 5/10/20/40-turn sessions, and writes a Markdown report into results/.
 
-Key metrics: compression_ratio, token_savings, context_savings, quality_score, critical_fact_recall, constraint_recall, utility_per_token, tasks_per_million_tokens.
+Key metrics: compression_ratio, token_savings, context_savings, quality_score, critical_fact_recall, constraint_recall, utility_per_token, tasks_per_million_tokens. An optional LLM judge (OpenRouter-compatible, rubric-based, blind per-response) scores correctness, completeness, constraint/uncertainty/trade-off preservation, actionability, and verbosity — run with --judge or npm run judge.
 
 **[→ evals/README.md](evals/README.md)**
 

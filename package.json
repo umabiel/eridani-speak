@@ -15,6 +15,7 @@
     "validate-fixtures": "tsx scripts/validate-fixtures.ts",
     "eval": "tsx scripts/run-eval.ts",
     "compare": "tsx scripts/compare.ts",
+    "judge": "tsx scripts/judge.ts",
     "report": "tsx scripts/report.ts"
   },
   "devDependencies": {

@@ -9,6 +9,7 @@ import { aggregate, scoreQuality, type Aggregate, type CaseResult } from './metr
 import { simulateConversation, type SimPoint } from './conversation-sim.js';
 import { parseSkillFile } from './frontmatter.js';
 import { renderReport, type RunResultFile } from './report.js';
+import { judgeRun } from './judge.js';
 
 const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
 
@@ -21,10 +22,11 @@ interface CliOptions {
   systemPrompt?: string;
   out?: string;
   temperature?: number;
+  judge: boolean;
 }
 
 function parseArgs(argv: string[]): CliOptions {
-  const opts: CliOptions = { mock: false };
+  const opts: CliOptions = { mock: false, judge: false };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     const value = (): string | undefined => {
@@ -40,6 +42,7 @@ function parseArgs(argv: string[]): CliOptions {
       case '--out': opts.out = value(); break;
       case '--temperature': opts.temperature = Number(value()); break;
       case '--mock': opts.mock = true; break;
+      case '--judge': opts.judge = true; break;
       default:
         throw new Error(`Unknown option: ${arg}`);
     }
@@ -179,6 +182,15 @@ async function main(): Promise<void> {
       conversation_sim,
       cases,
     });
+  }
+
+  if (opts.judge && runs.length > 0) {
+    const judgeModel = process.env.LLM_JUDGE_MODEL ?? model;
+    console.log(`\nJudging ${runs[0].n_cases} cases x ${runs.length} modes with ${judgeModel}...`);
+    const fixtures = new Map(loadFixtures().map((f) => [f.id, f]));
+    for (const run of runs) {
+      await judgeRun(provider, judgeModel, run, fixtures);
+    }
   }
 
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');

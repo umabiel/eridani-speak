@@ -1,4 +1,5 @@
 import type { EvalFixture } from './fixtures.js';
+import type { JudgeScores } from './judge.js';
 
 export interface CaseResult {
   fixtureId: string;
@@ -17,6 +18,8 @@ export interface CaseResult {
   constraint_recall: number;
   quality_score: number;
   task_success: boolean | null;
+  /** Optional LLM judge rubric scores (0-5 per dimension), when judging was run. */
+  judge?: JudgeScores | null;
 }
 
 export interface Aggregate {

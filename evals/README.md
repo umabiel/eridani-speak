@@ -66,26 +66,25 @@ tests, demos, and CI.
 ## CLI
 
 ```bash
-npm run eval -- [--suite <category|all>] [--mode normal|signal-coding] [--model M] [--max-cases N] [--mock] [--temperature T] [--out PATH]
+npm run eval -- [--suite <category|all>] [--mode normal|signal-coding] [--model M] [--max-cases N] [--mock] [--temperature T] [--out PATH] [--judge]
 npm run compare -- <normal.json> <signal.json>
 npm run report            # renders latest results/ pair
+npm run judge -- <normal.json> <signal.json> [--model M] [--max-cases N] [--mock]
 ```
 
-## Honest limits
+## LLM judge
 
-- Token counting is `approximate` (heuristic) or `tiktoken` (o200k_base via
-  gpt-tokenizer). When the provider reports usage, provider numbers win.
-- Per-case token metrics include the signal-coding system prompt in input
-  tokens (it is sent with every request — real API cost). The conversation
-  projection charges it *once* per simulated session (first turn), treating it
-  as a cached prompt afterwards, matching OpenRouter/OpenAI prompt caching.
-  The per-case table and the conversation table therefore tell different
-  stories on purpose: request cost vs long-session growth.
-- Quality scoring is deterministic: strict normalized substring OR fuzzy
-  in-order token containment (connectives stripped, negations skippable).
-  Task-success criteria are strict. This is a recall floor — absolute scores
-  under-state well-paraphrased answers; the intended use is relative
-  normal-vs-signal comparison on the same fixtures. An LLM judge is planned
-  (P2) but deliberately not required.
-- The agentic fixtures grade the *report* text, not real repository edits.
-  Real repo-execution agentic benchmarks are future work.
+`npm run judge` scores every response on a 0-5 rubric (correctness,
+completeness, constraints/uncertainty/trade-offs preserved, actionability,
+unnecessary verbosity) with a blind, per-response LLM evaluation — no A/B
+comparison, so longer answers get no bias. The judge prompt is in
+scripts/judge.ts; it asks for strict JSON and the parser tolerates fences.
+
+- Judge model: `LLM_JUDGE_MODEL` env (defaults to `LLM_MODEL`).
+- Attach to a run directly: `npm run eval -- --suite all --judge`.
+- Post-hoc: `npm run judge -- results/<ts>.normal.json results/<ts>.signal-coding.json`
+  writes `<base>.judged.{normal,signal-coding}.json` + `<base>.judged.report.md`.
+- Deterministic metrics and the judge are complementary: the deterministic
+  scorer is a recall floor; the judge adds semantic quality signal.
+- Same caveats as any LLM judge: model-dependent, cheap but not free, and
+  rubric drift is possible — keep the model constant within a comparison.
