@@ -78,6 +78,12 @@ Activate with **#signalcodingon**, disable with **#signalcodingoff**.
 
 **Protected zones (never altered):** code blocks, inline code, diffs, patches, regex, URLs, file paths, CLI commands, version numbers, error messages, stack traces, technical identifiers, JSON, YAML, XML, SQL, tool parameters, machine-readable output. If a tool expects a structured format, the format wins.
 
+**Non-negotiable rules:** never delete a condition to shorten; a trade-off states both sides;
+uncertainty is marked, not dropped; plans keep risks and a done-when condition; numbers,
+thresholds, and versions are never dropped.
+
+Dense markers: `assume:` `unless:` `if:` `trade-off:` `?` `revisit when:`
+
 Preferred shapes (use only the relevant sections):
 
     Finding:
@@ -197,7 +203,7 @@ Deliberately not included in v0.1: LLM judge, multi-provider matrix, real repo-e
 ## Work in progress
 
 - Rocky's voice is hard to pin down — close enough that readers recognise it, but not finished.
-- Signal Coding needs more eval datasets and real-model benchmark runs before any percentage claim.
+- Measured results exist (see docs/benchmarks): first run (v0.1) showed -75.2% output tokens at a judge-measured quality cost of -13.8%; the v1.1 tune recovered about a third of that gap at +5.7% tokens. Percentage claims below always reference these files.
 - The agentic fixtures grade the agent's *report text*, not real repository edits. Repo-execution agentic benchmarks are next.
 - Conversation projections are simulations from measured per-turn averages, not full multi-turn runs.
 

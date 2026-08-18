@@ -9,4 +9,5 @@ and (when present) LLM judge rubric scores. Raw JSON lives in results/
 
 | File | Run |
 |---|---|
-| 2026-08-18-openai-gpt-4o-mini.md | 55 fixtures x 2 modes, OpenRouter, gpt-4o-mini, tiktoken |
+| 2026-08-18-openai-gpt-4o-mini.md | v0.1 skill — 55 fixtures x 2 modes, OpenRouter, gpt-4o-mini, tiktoken, judged |
+| 2026-08-18-openai-gpt-4o-mini-v1.1.md | v1.1 skill (nuance rules) — same config, judged |
