@@ -6,6 +6,8 @@ export interface CaseResult {
   mode: string;
   output: string;
   input_tokens: number;
+  /** Input tokens excluding the system prompt (prompt text only). */
+  prompt_input_tokens: number;
   output_tokens: number;
   total_tokens: number;
   cached_input_tokens?: number;
@@ -20,6 +22,9 @@ export interface CaseResult {
 export interface Aggregate {
   n: number;
   input_tokens: number;
+  prompt_input_tokens: number;
+  /** System prompt tokens across all cases (signal mode only; 0 for normal). */
+  system_prompt_tokens: number;
   output_tokens: number;
   total_tokens: number;
   cached_input_tokens: number;
@@ -87,6 +92,8 @@ export function aggregate(cases: CaseResult[]): Aggregate {
   return {
     n,
     input_tokens: sum((c) => c.input_tokens),
+    prompt_input_tokens: sum((c) => c.prompt_input_tokens),
+    system_prompt_tokens: sum((c) => c.input_tokens - c.prompt_input_tokens),
     output_tokens: sum((c) => c.output_tokens),
     total_tokens: sum((c) => c.total_tokens),
     cached_input_tokens: sum((c) => c.cached_input_tokens ?? 0),

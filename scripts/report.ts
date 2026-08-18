@@ -98,8 +98,11 @@ export function renderReport(input: ReportInput): string {
 
     const normalCtxGrowth = contextGrowthRate(normal.conversation_sim);
     const signalCtxGrowth = contextGrowthRate(signal.conversation_sim);
+    const sysPrompt = signal.aggregate.system_prompt_tokens / Math.max(1, signal.aggregate.n);
     lines.push('## Conversation growth projection (simulated)', '');
-    lines.push(`Average tokens added per turn: normal **${normalCtxGrowth.toFixed(1)}** vs signal **${signalCtxGrowth.toFixed(1)}** (${formatDelta(delta(normalCtxGrowth, signalCtxGrowth))}).`);
+    lines.push(`System prompt: **${Math.round(sysPrompt)} tokens** (signal mode) — charged once per session, treated as cached after the first turn.`);
+    lines.push('');
+    lines.push(`Average tokens added per turn (excl. one-time system prompt): normal **${normalCtxGrowth.toFixed(1)}** vs signal **${signalCtxGrowth.toFixed(1)}** (${formatDelta(delta(normalCtxGrowth, signalCtxGrowth))}).`);
     lines.push('');
     lines.push('| Turns | Normal cumulative | Signal cumulative | Context savings |');
     lines.push('|---|---:|---:|---:|');

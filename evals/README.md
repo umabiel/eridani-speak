@@ -75,11 +75,12 @@ npm run report            # renders latest results/ pair
 
 - Token counting is `approximate` (heuristic) or `tiktoken` (o200k_base via
   gpt-tokenizer). When the provider reports usage, provider numbers win.
-- In signal-coding mode the system prompt is counted in per-case input tokens
-  (it is sent with every request). In real use a cached system prompt
-  amortizes to near zero after the first turn; the conversation projection
-  currently counts it per turn, which *overstates* signal-mode context growth.
-  Treat conversation savings as a conservative lower bound.
+- Per-case token metrics include the signal-coding system prompt in input
+  tokens (it is sent with every request — real API cost). The conversation
+  projection charges it *once* per simulated session (first turn), treating it
+  as a cached prompt afterwards, matching OpenRouter/OpenAI prompt caching.
+  The per-case table and the conversation table therefore tell different
+  stories on purpose: request cost vs long-session growth.
 - Quality scoring is deterministic substring presence — a strong floor, not a
   full semantic judge. An LLM judge is planned but deliberately not required.
 - The agentic fixtures grade the *report* text, not real repository edits.

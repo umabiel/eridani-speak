@@ -61,6 +61,7 @@ test('aggregate sums tokens and averages quality', () => {
     mode: 'normal',
     output: '',
     input_tokens: 100,
+    prompt_input_tokens: 100,
     output_tokens: 50,
     total_tokens: 150,
     latency_ms: 10,

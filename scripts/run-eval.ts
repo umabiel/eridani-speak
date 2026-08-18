@@ -54,8 +54,10 @@ function buildCaseResult(
   systemPrompt: string | undefined,
   counter: TokenCounter,
 ): CaseResult {
+  const systemTokens = systemPrompt ? counter.count(systemPrompt) : 0;
   const promptTokens = counter.count(`${systemPrompt ? `${systemPrompt}\n` : ''}${fixture.prompt}`);
   const input_tokens = result.usage.input_tokens || promptTokens;
+  const prompt_input_tokens = Math.max(0, input_tokens - systemTokens);
   const output_tokens = result.usage.output_tokens || counter.count(result.text);
   const total_tokens = result.usage.total_tokens || input_tokens + output_tokens;
   const quality = scoreQuality(result.text, fixture);
@@ -65,6 +67,7 @@ function buildCaseResult(
     mode,
     output: result.text,
     input_tokens,
+    prompt_input_tokens,
     output_tokens,
     total_tokens,
     cached_input_tokens: result.usage.cached_input_tokens,
@@ -156,11 +159,14 @@ async function main(): Promise<void> {
       );
     }
     const agg: Aggregate = aggregate(cases);
+    // Per-turn input excludes the system prompt; the system prompt is charged
+    // once per session (initialTokens), matching cached-prompt pricing.
     const perTurn = {
-      input_tokens: agg.n ? agg.input_tokens / agg.n : 0,
+      input_tokens: agg.n ? agg.prompt_input_tokens / agg.n : 0,
       output_tokens: agg.n ? agg.output_tokens / agg.n : 0,
     };
-    const conversation_sim: SimPoint[] = simulateConversation(perTurn, [5, 10, 20, 40]);
+    const initialTokens = mode === 'signal-coding' && agg.n ? agg.system_prompt_tokens / agg.n : 0;
+    const conversation_sim: SimPoint[] = simulateConversation(perTurn, [5, 10, 20, 40], { initialTokens });
     runs.push({
       generated_at: new Date().toISOString(),
       model,

@@ -7,6 +7,8 @@ function makeAggregate(over: Partial<Aggregate>): Aggregate {
   return {
     n: 10,
     input_tokens: 10000,
+    prompt_input_tokens: 10000,
+    system_prompt_tokens: 0,
     output_tokens: 2000,
     total_tokens: 12000,
     cached_input_tokens: 0,
