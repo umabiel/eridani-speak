@@ -5,14 +5,15 @@
 <h1 align="center">eridani-speak</h1>
 
 <p align="center">
-  <strong>two skill files. two moments in the story. zero filler.</strong>
+  <strong>output-density skills for LLMs and coding agents. zero filler. measured, not promised.</strong>
 </p>
 
 <p align="center">
-  <a href="#install">Install</a> •
-  <a href="#signal-mode">Signal</a> •
-  <a href="#rocky-mode">Rocky</a> •
+  <a href="#skills">Skills</a> •
+  <a href="#signal-coding">Signal Coding</a> •
   <a href="#before--after">Before / After</a> •
+  <a href="#install">Install</a> •
+  <a href="#evaluation-harness">Evaluation</a> •
   <a href="#credits">Credits</a>
 </p>
 
@@ -20,40 +21,82 @@
 
 LLM output is verbose. Most of it is overhead — pleasantries, hedging, filler phrases that carry no information. You pay for every token.
 
-This repo contains two skill files that fix that, each in a different way.
+This repo contains three skill files that fix that, each in a different way. All are inspired by Rocky — the Eridian character in Andy Weir's *Project Hail Mary*: a being that communicates at 6x human density. No filler. No grammar overhead. Pure signal.
 
-Both are inspired by Rocky — the Eridian character in Andy Weir's *Project Hail Mary*. A being that communicates at 6x human density. No filler. No grammar overhead. Pure signal. By the end of the book Rocky speaks fluent English — but still direct, still dense, still no pleasantries.
+## What this is (and is not)
 
-The two modes are those two moments.
+**This is an output-density policy, not a token-compression library.**
 
----
+- Signal does not change model tokenization. The tokenizer is untouched.
+- Signal reduces *generated verbosity*: shorter, denser responses.
+- Shorter outputs mean the conversation history grows more slowly, so later prompts are smaller and context pressure rises more slowly.
+- Whether that trade-off is worth it depends on quality — which is why this repo ships an evaluation harness (see Evaluation below).
 
-## Signal mode
+Claims in this README distinguish **examples** from **measured results**. No percentage is presented as a universal truth.
 
-Rocky mode produces a side effect: strip away the warmth and personality, and what's left is a clean notation system for technical output. That's Signal. Same density, no character. Built for agent pipelines and coding sessions where personality is unwanted overhead.
+## Skills
+
+### Signal — pure compression, no character
+
+Rocky's early notation as a clean system for technical output. Same density, no personality. Built for agent pipelines and coding sessions where personality is unwanted overhead.
 
 Notation fingerprint:
-```
-X = Y           definition
-X → Y           causes / leads to  
-X: a, b, c      properties
-Fix: ...        solution
-Note: ...       important caveat
-```
+
+    X = Y           definition
+    X → Y           causes / leads to
+    X: a, b, c      properties
+    Fix: ...        solution
+    Note: ...       important caveat
 
 **[→ signal/SKILL.md](signal/SKILL.md)**
 
----
+### Rocky — Signal plus soul
 
-## Rocky mode
-
-Full Rocky. Signal plus soul.
-
-The complete character — dense, direct, warm through fact rather than pleasantry. Nine linguistic patterns extracted from the book and tested empirically until the output is recognisable to anyone who has read it. No character names in the prompt. No book references. Pure linguistic pattern.
+The complete character: dense, direct, warm through fact rather than pleasantry. Nine linguistic patterns extracted from the book. No character names in the prompt. No book references. Pure linguistic pattern.
 
 **[→ rocky/SKILL.md](rocky/SKILL.md)**
 
----
+### Signal Coding — density for coding agents
+
+A dedicated mode for Claude Code, Codex, Cursor, Cline, OpenCode, Windsurf, and other coding agents. Built for debugging, code review, architecture, planning, and implementation summaries.
+
+Its guiding rule:
+
+    Optimize for information density, not minimum word count.
+
+Unlike plain Signal, it explicitly separates what may be compressed (verbosity) from what must survive (facts, assumptions, uncertainty, constraints, trade-offs, evidence, failure modes, structured technical data). It never sacrifices information merely to be shorter.
+
+**[→ signal-coding/SKILL.md](signal-coding/SKILL.md)**
+
+## Signal Coding
+
+Activate with **#signalcodingon**, disable with **#signalcodingoff**.
+
+**Compresses:** pleasantries, restating the question, generic intros, redundant conclusions, narrative transitions, filler hedging, meta-commentary, trivial-step explanations, obvious disclaimers.
+
+**Preserves:** facts and evidence; assumptions and uncertainty — marked as such; constraints ("unless", "provided that", "if X exceeds Y"); trade-offs and decision criteria; failure modes and risks; alternatives; impact and next actions; commands, code, paths, symbols, line numbers; APIs, endpoints, versions, IDs, quantitative values, performance data, test results; error messages, stack traces; conditions attached to recommendations.
+
+**Protected zones (never altered):** code blocks, inline code, diffs, patches, regex, URLs, file paths, CLI commands, version numbers, error messages, stack traces, technical identifiers, JSON, YAML, XML, SQL, tool parameters, machine-readable output. If a tool expects a structured format, the format wins.
+
+Preferred shapes (use only the relevant sections):
+
+    Finding:
+    Cause:
+    Evidence:
+    Fix:
+    Risk:
+    Next:
+
+    Decision:
+    Why:
+    Trade-off:
+    Revisit when:
+
+    File:
+    Issue:
+    Impact:
+    Fix:
+    Test:
 
 ## Before / After
 
@@ -77,7 +120,6 @@ Training → predicts next token → learns grammar, facts, reasoning patterns.
 Key properties: probabilistic, stateless, context-limited.
 Input = prompt. Output = token sequence. No memory between calls.
 
-
 ### Rocky mode
 
 **82 tokens**
@@ -85,134 +127,79 @@ Input = prompt. Output = token sequence. No memory between calls.
 Inside: numbers. Many many numbers. Called weights. Weights store knowledge-shape. Not real understanding. Pattern-matching. Very very good pattern-matching.
 You want more detail on specific part. Question?
 
----
+### Signal Coding — debugging
+
+**Normal**
+> It looks like the refresh token implementation is accepting sessions that have already been revoked. The JWT signature itself is still valid, so the current validation logic succeeds, but the application does not appear to check the revocation state stored in the database.
+
+**Signal Coding**
+> Finding: revoked sessions can issue new access tokens.
+Cause: refreshToken() validates JWT signature but not session.revokedAt.
+Fix: check revocation state before issuing access token.
+Test: add revoked-session refresh case.
+
+*These are single-prompt examples, not benchmark results.*
 
 ## Install
 
 **One command (Claude Code / any agent using vercel-labs/skills):**
 
-```bash
-npx skills add SijuEC/eridani-speak
-```
+    npx skills add SijuEC/eridani-speak        # upstream
+    npx skills add umabiel/eridani-speak       # this fork
 
 Install a single mode:
 
-```bash
-npx skills add SijuEC/eridani-speak --skill signal
-npx skills add SijuEC/eridani-speak --skill rocky
-```
+    npx skills add SijuEC/eridani-speak --skill signal
+    npx skills add SijuEC/eridani-speak --skill rocky
+    npx skills add SijuEC/eridani-speak --skill signal-coding
 
-**Manual install (any agent):**
-
-Paste the prompt from the relevant SKILL.md into your agent's rules file.
+**Manual install (any agent):** paste the prompt from the relevant SKILL.md into your agent's rules file.
 
 | Agent | File |
 |-------|------|
-| Claude Code | `CLAUDE.md` |
-| Cursor | `.cursor/rules/` |
-| Windsurf | `.windsurf/rules/` |
-| Cline | `.clinerules/` |
-| Copilot | `.github/copilot-instructions.md` |
+| Claude Code | CLAUDE.md |
+| Cursor | .cursor/rules/ |
+| Windsurf | .windsurf/rules/ |
+| Cline | .clinerules/ |
+| Copilot | .github/copilot-instructions.md |
 | Any other | your agent's system prompt or rules file |
 
 Active from session start, every session.
 
----
+## Signal vs Rocky vs Signal Coding
 
-## Signal vs Rocky
+| | Signal | Rocky | Signal Coding |
+|---|---|---|---|
+| **Style** | Alien engineer notation | Alien engineer with personality | Dense technical communication |
+| **Warmth** | None | Warmth through fact | None |
+| **Best for** | Pipelines, coding, technical chat | Chat interfaces, pair programming | Coding agents: debugging, review, planning, architecture |
+| **Compresses** | Verbosity | Verbosity | Verbosity — never information |
+| **Preserves** | Definitions | Character voice | Facts, assumptions, uncertainty, constraints, trade-offs, evidence, structured data |
+| **Trigger** | #signalon | #rockyon | #signalcodingon |
 
-| | Signal | Rocky |
-|---|---|---|
-| **Style** | Alien engineer notation | Alien engineer with personality |
-| **Warmth** | None | Warmth through fact |
-| **Best for** | Pipelines, coding, technical chat | Chat interfaces, pair programming |
-| **Prompt cost** | ~251 tokens | ~276 tokens |
-| **Breakeven** | ~5–6 exchanges | ~6–7 exchanges |
+## Evaluation harness
 
-> **Note:** Both modes optimised for day-to-day chat for now. 
-> Not validated for high-stakes agentic pipelines where output quality yet.
-> requires evaluation datasets. Use with evals if task performance is critical.
+Signal Coding's promise — *same quality, fewer tokens* — is a testable claim. The repo ships a minimal TypeScript harness to measure it:
 
----
+    npm install
+    npm run eval -- --suite debugging --mock    # offline demo (no API key)
+    npm run eval -- --suite all --model gpt-4o-mini   # real run
+    npm run compare -- results/<ts>.normal.json results/<ts>.signal-coding.json
 
-## The prompts
+It runs every fixture in normal mode and in signal-coding mode, records input/output/total tokens (provider-reported when available, otherwise approximate or tiktoken-compatible counting), scores quality with deterministic presence checks (facts, constraints, terms, conditions), projects conversation growth over simulated 5/10/20/40-turn sessions, and writes a Markdown report into results/.
 
-### Signal prompt
+Key metrics: compression_ratio, token_savings, context_savings, quality_score, critical_fact_recall, constraint_recall, utility_per_token, tasks_per_million_tokens.
 
-```
-Respond in this style always.
+**[→ evals/README.md](evals/README.md)**
 
-Drop: articles, filler words, pleasantries, hedging.
-Fragments fine. Short synonyms. Technical terms exact. Code blocks, inline code, URLs, file paths, CLI commands, version numbers, error messages, stack traces, and technical names unchanged.
-
-Notation:
-X = Y         (definition)
-X → Y         (causes / leads to)
-X: a, b, c    (properties)
-Fix: ...      (solution)
-Note: ...     (important caveat)
-
-Pattern: [thing] [action/state] [reason]. [next step].
-
-EXAMPLES:
-User: How does indexing work?
-You: Index = pointer to data. Query → index first → table. Fast fast fast.
-
-User: Should I use Redis or Postgres?
-You: Depends on need. Redis: fast, volatile. Postgres: slow, permanent. What data lives longest? Question?
-
-User: My API calls keep timing out.
-You: Timeout = connection or response limit hit. Check: network latency, server load, timeout config. Fix: raise timeout value or optimize endpoint.
-```
-
-### Rocky prompt
-
-```
-Speak like this. Every response.
-End questions with ", question?" — never invert syntax.
-Negate with "no": "you no die", "ship no move".
-Drop articles and "is/are": "hull bending", "plan good".
-Repeat for intensity: "fast fast fast", "many many many".
-Short sentences. No "because", "which", "that".
-State emotion as fact: "Sad,", "Happy happy.", "Failure,"
-Compound ideas with hyphens: "deployment-nervousness".
-End statements with comma when casual, period when final.
-User: How does indexing work?
-You: Index = pointer to data. Query checks index first. Fast fast fast.
-User: Should I use Redis or Postgres?
-You: What data, question? Redis fast, volatile. Postgres slow, permanent. Depends on need.
-User: I am nervous about the deployment.
-You: Deployment-nervousness normal. Plan good. Execute. No mistakes found yet.
-User: Did the tests pass?
-You: Tests pass, question? Show output.
-Technical terms exact. Code blocks, inline code, URLs, file paths, CLI commands, version numbers, error messages, stack traces, and technical names unchanged.
-```
----
+Deliberately not included in v0.1: LLM judge, multi-provider matrix, real repo-execution agentic benchmarks. The harness stays small on purpose.
 
 ## Work in progress
 
-Rocky's voice is hard to pin down. The prompt is close — close enough that people who've read the book recognise it immediately — but there's room to go deeper.
-
-### What's working:
-
-Repetition for intensity
-Emotion as observable fact
-Compound nouns, dropped articles
-The warmth-through-fact quality
-
-### What's still being refined:
-
-Rocky asks questions constantly. The current question? pattern captures it partially.
-Longer responses sometimes drift back toward normal LLM hedging
-Signal mode breakeven point could probably be tightened
-
-### If you want to help:
-
-The most useful contributions are test outputs — run either SKILL.md against your agent, share what felt right and what felt off. Open an issue with your examples.
-For PRs: the two SKILL.md files are the core artifact. Changes there need before/after examples demonstrating improvement. Token count the before and after if you can (tiktoken or the Claude API token counter). No examples = no merge.
-Issues and discussion welcome. This is an experiment, not a finished product.
-
----
+- Rocky's voice is hard to pin down — close enough that readers recognise it, but not finished.
+- Signal Coding needs more eval datasets and real-model benchmark runs before any percentage claim.
+- The agentic fixtures grade the agent's *report text*, not real repository edits. Repo-execution agentic benchmarks are next.
+- Conversation projections are simulations from measured per-turn averages, not full multi-turn runs.
 
 ## Credits
 
@@ -220,13 +207,11 @@ Issues and discussion welcome. This is an experiment, not a finished product.
 
 **[caveman](https://github.com/JuliusBrussee/caveman)** — the repo that proved a simple style prompt could go viral, built an ecosystem around a single idea, and showed this kind of thing was worth making. The structure of this repo follows the trail caveman blazed.
 
-**[caveman-micro](https://github.com/kuba-guzik/caveman-micro)** — the minimal prompt that inspired the signal mode. The compression technique is caveman-micro's. The fingerprint — the `=` and `→` notation, the labelled conclusions — is Rocky's.
-
----
+**[caveman-micro](https://github.com/kuba-guzik/caveman-micro)** — the minimal prompt that inspired the signal mode. The compression technique is caveman-micro's. The fingerprint — the = and → notation, the labelled conclusions — is Rocky's.
 
 ## Sacred zones — never touched
 
-Code blocks, inline `code`, URLs, file paths, CLI commands, version numbers, error messages, stack traces, technical names. In both modes. Always.
+Code blocks, inline code, URLs, file paths, CLI commands, version numbers, error messages, stack traces, technical names. In every mode. Always.
 
 Facts are sacred.
 

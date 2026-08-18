@@ -1,0 +1,28 @@
+{
+  "name": "eridani-speak",
+  "version": "0.1.0",
+  "description": "Output-density skills for LLMs and coding agents, plus an evaluation harness that measures the token/quality trade-off.",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "validate-fixtures": "tsx scripts/validate-fixtures.ts",
+    "eval": "tsx scripts/run-eval.ts",
+    "compare": "tsx scripts/compare.ts",
+    "report": "tsx scripts/report.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "eslint": "^9.17.0",
+    "gpt-tokenizer": "^2.9.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.18.0"
+  }
+}
